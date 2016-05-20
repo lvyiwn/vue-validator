@@ -57,7 +57,7 @@ __methods added to VM:__
 DEMO
 ----
 
-[http://xrado.github.io/vue-validator/](http://lvyiwn.github.io/vue-validator/)
+[http://xrado.github.io/vue-validator/](http://xrado.github.io/vue-validator/)
 
 
 
