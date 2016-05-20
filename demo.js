@@ -1,6 +1,6 @@
 define(function(require){
 
-	var Vue = require('vendor/vue-0.11.1'),
+	var Vue = require('http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js'),
 		validator = require('validator');
 
 	Vue.use(validator);
