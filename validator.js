@@ -3,7 +3,7 @@
 	var install = function (Vue, options) {
 		var _ = Vue.util;
 
-		_.validators = {
+		var validators = _.validators = {
 			required: function (value) {
 				if(typeof value == 'boolean') return value;
 				return !((value == null) || (value.length == 0));
@@ -88,7 +88,8 @@
 		Vue.directive('valid', {
 			priority: 801,
 			bind: function () {
-				var model = this.el.getAttribute(Vue.config.prefix+'model'),
+                var prefix = Vue.config.prefix||'v-';
+				var model = this.el.getAttribute(prefix+'model'),
 					vm = this.vm,
 					startValue;
 
@@ -149,25 +150,31 @@
 						}.bind(this));
 					}
 
-					vm.$set('validator.'+model+'._validate.'+(this.arg || this.expression), this.expression);
+					// resolve validator
+					var validators = this.expression.split(",");
+					Object.keys(validators).forEach(function (index) {
+						var expression = validators[index].split(":");
+						vm.$set('validator.'+model+'._validate.'+(expression[0]), expression.length>1?expression[1].trim():null);						
+					});
 
+					// 暂时未修改
 					if(this.arg != 'group') vm.$set('validator.'+model+'.'+(this.arg || this.expression), false);
 				}
 			},
 			validate: function (model) {
-				var vm = this.vm,
-					value = vm.$get(model),
-					validate = this.vm.$get('validator.'+model+'._validate'),
+				var vm = this.vm;
+				var	value = vm.$get(model),
+					validate = vm.$get('validator.'+model+'._validate'),
 					valid = true,
 					skip = this.el.classList.contains('skip-validation');
 
 				if(!skip) {
 					Object.keys(validate).forEach(function (name) {
 						if(name == 'group') return;
-						if(!_.validators[name]) throw new Error('missing validator for '+name);
+						if(!validators[name]) throw new Error('missing validator for '+name);
 
 						var arg = vm.$get('validator.'+model+'._validate.'+name);
-						var _valid = (name != 'required' && ((value == null) || (value.length == 0))) ? true : _.validators[name].call(this,value,arg);
+						var _valid = (name != 'required' && ((value == null) || (value.length == 0))) ? true : validators[name].call(this,value,arg);
 						vm.$set('validator.'+model+'.'+name,_valid);
 
 						if(valid && !_valid) valid = false;
