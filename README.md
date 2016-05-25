@@ -1,7 +1,7 @@
 vue-validator
 =============
 
-form validator for vue 0.11
+form validator for vue 1.0
 
 __usage:__
 
