@@ -1,113 +1,94 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>Vue-validator by lvyiwn</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Vue-validator</h1>
-      <h2 class="project-tagline">form validator for vue 1.0</h2>
-      <a href="https://github.com/lvyiwn/vue-validator" class="btn">View on GitHub</a>
-      <a href="https://github.com/lvyiwn/vue-validator/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/lvyiwn/vue-validator/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<html>
+<head>
+	<title>vue-validator</title>
+	<style>
+		body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; margin: 20px; }
+		table.form td { margin:5px; padding: 5px; }
+		pre { font-size:11px; background: #eee; padding: 5px; }
+        h3 {margin:0;}
+        input { border: 1px solid gray; padding: 3px 6px; border-radius: 2px; }
+		.valid {  }
+		.invalid { color: red; border-color: red; }
+		.invalid input { color: red; border-color: red; }
+		.invalidText { color: red; }
+	</style>
+</head>
+<body id="app">
+	<h1>Vue-validator</h1>
 
-    <section class="main-content">
-      <h1>
-<a id="vue-validator" class="anchor" href="#vue-validator" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vue-validator</h1>
+	<table class="form">
+		<tr v-class="invalidText: !validator.form.name.valid">
+			<td>First name</td>
+			<td><input type="text" v-model="form.name" v-valid="required,alpha" value="Rado" lazy/> (lazy) <span v-if="validator.form.name.modified">modified</span></td>
+		</tr>
+		<tr v-class="invalidText: !validator.form.age.valid">
+			<td>Age</td>
+			<td><input type="text" v-model="form.age" v-valid="required,integer,min: 10" number/></td>
+		</tr>
+		<tr v-class="invalidText: !validator.form.check.valid">
+			<td>Check</td>
+			<td><input type="checkbox" v-model="form.check" v-valid="required"/></td>
+		</tr>
+		<tr v-class="invalidText: !validator.form.pattern.valid">
+			<td>Pattern</td>
+			<td><input type="text" v-model="form.pattern" v-valid="required,minLength:4,pattern: /abc/"/></td>
+		</tr>
+		<tr v-class="invalidText: !validator.form.email.valid">
+			<td>Email</td>
+			<td><input type="text" v-model="form.email" v-valid="required,email"/></td>
+		</tr>
+		<tr>
+			<td>Address</td>
+			<td>
+				<input type="text" v-model="form.addresses[0].name" v-valid="alpha"/> <br/>
+				<input type="text" v-model="form.addresses[1].name" v-valid="alpha"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Address 2</td>
+			<td>
+				<ul>
+				<li v-repeat="form.addresses2">
+					<input type="text" v-model="form.addresses2[$index].v" v-valid="alpha"/> <br/>
+					<button v-on="click: form.addresses2.$remove($index)">remove</button>
+				</li>
+				</ul>
+				<input type="text" placeholder="add address" v-on="keyup: addAddress | key enter"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Text component</td>
+			<td>
+				<div v-component="test" v-with="text:form.text" v-valid="required" model="text"></div>
+			</td>
+		</tr>
+		<tr >
+			<td></td>
+			<td><button v-on="click: onSave">Save</button> <span v-if="isModified">modified</span></td>
+		</tr>
+	</table>
+	<br/>
 
-<p>form validator for vue 0.11</p>
+	<div v-if="!isValid" style="text-align: center;padding: 5px; color: white" v-style="background-color: isValid ? 'green' : 'red'">
+		<span>INVALID</span>
+	</div>
 
-<p><strong>usage:</strong></p>
+<br/>
+form data: <br/>
+<pre style="font-size:11px">
+{{form | JSON}}
+</pre>
+<br/>
+validator: <br/>
+<pre style="font-size:11px">
+{{validator | JSON}}
+</pre>
 
-<pre><code>var Vue = require('vue')
-var validator = require('vue-validator')
-Vue.use(validator)
-</code></pre>
+	<br/>
 
-<p>in template</p>
+	GitHub pages: <a href="https://github.com/xrado/vue-validator">https://github.com/xrado/vue-validator</a>
 
-<pre><code>&lt;input type="text" v-model="name" v-valid="required,minLength:3,alpha"&gt;
-</code></pre>
-
-<p>means.. name is required, must be at least 3 character length and only alphabetic characters. If all this rules are satisfied input will get valid class otherwise invalid. Validator status is held in vm.validator. See demo.js for more examples of usage.</p>
-
-<p>For custom elements you can specify model name in additional attribute model.</p>
-
-<pre><code>&lt;xcomponent model="name" v-valid="required"&gt;&lt;/xcomponent&gt;
-</code></pre>
-
-<p><strong>v-valid options:</strong></p>
-
-<ul>
-<li>required</li>
-<li>numeric</li>
-<li>integer</li>
-<li>digits</li>
-<li>alpha</li>
-<li>alphaNum</li>
-<li>email</li>
-<li>url</li>
-<li>minLength: min string length</li>
-<li>maxLength: max string length</li>
-<li>length: string length</li>
-<li>min: number value</li>
-<li>max: number value</li>
-<li>pattern: regex</li>
-<li>group: group name</li>
-</ul>
-
-<p>You can add additional filters to Vue.util.validators</p>
-
-<p><strong>validator data:</strong></p>
-
-<ul>
-<li>valid - input is valid</li>
-<li>modified - input is modified (current value != start value)</li>
-<li>invalid - modified and invalid</li>
-</ul>
-
-<p><strong>methods added to VM:</strong></p>
-
-<ul>
-<li>$valid([group]) - return if true if form is valid (group is optional)</li>
-<li>$modified([group]) - return if true if form is modified (group is optional)</li>
-</ul>
-
-<h2>
-<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>DEMO</h2>
-
-<p><a href="http://xrado.github.io/vue-validator/">http://xrado.github.io/vue-validator/</a></p>
-
-<h2>
-<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
-
-<ul>
-<li>may still need some tweaking</li>
-<li>tests</li>
-</ul>
-
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
-
-<p><a href="http://opensource.org/licenses/MIT">MIT</a></p>
-
-<p>Copyright (c) 2014 Radovan Lozej </p>
-
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/lvyiwn/vue-validator">Vue-validator</a> is maintained by <a href="https://github.com/lvyiwn">lvyiwn</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
-
-  
-  </body>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.15/require.min.js" data-main="demo.js" type="text/javascript"></script>
+</body>
 </html>
